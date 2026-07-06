@@ -97,9 +97,7 @@ const getReportById = async (req, res) => {
     const { id } = req.params;
 
     const report = await prisma.report.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       include: {
         citizen: {
           select: {
@@ -132,8 +130,74 @@ const getReportById = async (req, res) => {
   }
 };
 
+// ==============================
+// Update Report Status
+// ==============================
+const updateReportStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const report = await prisma.report.update({
+      where: { id },
+      data: { status },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Report status updated successfully",
+      report,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// ==============================
+// Delete Report
+// ==============================
+const deleteReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const report = await prisma.report.findUnique({
+      where: { id },
+    });
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "Report not found",
+      });
+    }
+
+    await prisma.report.delete({
+      where: { id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Report deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   createReport,
   getAllReports,
   getReportById,
+  updateReportStatus,
+  deleteReport,
 };
