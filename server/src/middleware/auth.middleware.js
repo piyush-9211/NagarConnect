@@ -11,9 +11,8 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : authHeader;
+    // Always extract token safely
+    const token = authHeader.replace("Bearer ", "").trim();
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -21,6 +20,8 @@ const authMiddleware = (req, res, next) => {
 
     next();
   } catch (error) {
+    console.log("JWT ERROR:", error.message);
+
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token.",
