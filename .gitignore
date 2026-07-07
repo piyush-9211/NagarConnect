@@ -141,3 +141,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# AI Training Datasets
+
+# Ignore raw downloaded datasets
+ai-training/datasets/raw/
+
+# Ignore processed datasets (they can be regenerated)
+ai-training/datasets/processed/
+
+# Keep the datasets folder itself
+!ai-training/datasets/.gitkeep
