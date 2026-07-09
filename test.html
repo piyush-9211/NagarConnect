@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test</title>
+</head>
+<body>
+
+<input type="file" id="image">
+<br><br>
+
+<button onclick="upload()">Upload</button>
+
+<script>
+async function upload() {
+    const file = document.getElementById("image").files[0];
+
+    const formData = new FormData();
+    formData.append("title", "Pothole");
+    formData.append("description", "Big pothole near SRM");
+    formData.append("issueType", "Pothole");
+    formData.append("latitude", "12.823");
+    formData.append("longitude", "80.044");
+    formData.append("address", "SRM Main Gate");
+    formData.append("image", file);
+
+    const res = await fetch("http://localhost:4000/api/reports", {
+        method: "POST",
+        headers: {
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcwMzM3N2VkLWIzZGYtNDkxMi05MDdkLWQyMmU1YjkxNTM1OCIsInJvbGUiOiJDSVRJWkVOIiwiaWF0IjoxNzgzMzQyODQzLCJleHAiOjE3ODM5NDc2NDN9.NTOSBlKOgSnXaNC-KNnhzb322yod3-H6-xl1Dd4974w"
+        },
+        body: formData
+    });
+
+    const data = await res.json();
+    console.log(data);
+    alert(JSON.stringify(data, null, 2));
+}
+</script>
+
+</body>
+</html>
