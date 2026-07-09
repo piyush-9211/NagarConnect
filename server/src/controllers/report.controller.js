@@ -36,10 +36,28 @@ const createReport = async (req, res) => {
         longitude: parseFloat(longitude),
         address,
         citizenId: req.user.id,
+
+        images: req.file
+          ? {
+              create: {
+                imageUrl: `/uploads/${req.file.filename}`,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        citizen: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        images: true,
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Report created successfully",
       report,
@@ -47,7 +65,7 @@ const createReport = async (req, res) => {
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -55,9 +73,41 @@ const createReport = async (req, res) => {
 };
 
 // ==============================
-// Get All Reports
+// Citizen Reports
 // ==============================
 const getAllReports = async (req, res) => {
+  try {
+    const reports = await prisma.report.findMany({
+      where: {
+        citizenId: req.user.id,
+      },
+      include: {
+        images: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: reports.length,
+      reports,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// ==============================
+// Admin Reports
+// ==============================
+const getAdminReports = async (req, res) => {
   try {
     const reports = await prisma.report.findMany({
       include: {
@@ -68,21 +118,21 @@ const getAllReports = async (req, res) => {
             email: true,
           },
         },
+        images: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      count: reports.length,
       reports,
     });
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -90,14 +140,14 @@ const getAllReports = async (req, res) => {
 };
 
 // ==============================
-// Get Report By ID
+// Report Details
 // ==============================
 const getReportById = async (req, res) => {
   try {
-    const { id } = req.params;
-
     const report = await prisma.report.findUnique({
-      where: { id },
+      where: {
+        id: req.params.id,
+      },
       include: {
         citizen: {
           select: {
@@ -106,6 +156,7 @@ const getReportById = async (req, res) => {
             email: true,
           },
         },
+        images: true,
       },
     });
 
@@ -116,14 +167,14 @@ const getReportById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       report,
     });
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -131,27 +182,30 @@ const getReportById = async (req, res) => {
 };
 
 // ==============================
-// Update Report Status
+// Update Status
 // ==============================
 const updateReportStatus = async (req, res) => {
   try {
-    const { id } = req.params;
     const { status } = req.body;
 
     const report = await prisma.report.update({
-      where: { id },
-      data: { status },
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        status,
+      },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Report status updated successfully",
+      message: "Status updated successfully",
       report,
     });
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -163,10 +217,10 @@ const updateReportStatus = async (req, res) => {
 // ==============================
 const deleteReport = async (req, res) => {
   try {
-    const { id } = req.params;
-
     const report = await prisma.report.findUnique({
-      where: { id },
+      where: {
+        id: req.params.id,
+      },
     });
 
     if (!report) {
@@ -177,17 +231,19 @@ const deleteReport = async (req, res) => {
     }
 
     await prisma.report.delete({
-      where: { id },
+      where: {
+        id: req.params.id,
+      },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Report deleted successfully",
     });
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
@@ -197,6 +253,7 @@ const deleteReport = async (req, res) => {
 module.exports = {
   createReport,
   getAllReports,
+  getAdminReports,
   getReportById,
   updateReportStatus,
   deleteReport,

@@ -20,6 +20,14 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // =====================
+// DEBUG ROUTE
+// =====================
+
+app.get("/test", (req, res) => {
+  res.send("TEST WORKS");
+});
+
+// =====================
 // Routes
 // =====================
 
@@ -30,7 +38,9 @@ app.get("/", (req, res) => {
   });
 });
 
+console.log("Mounting auth routes...");
 app.use("/api/auth", authRoutes);
+
 app.use("/api/reports", reportRoutes);
 
 // =====================

@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+console.log("✅ AUTH ROUTES LOADED");
+
 const authMiddleware = require("../middleware/auth.middleware");
 const { register, login } = require("../controllers/auth.controller");
 

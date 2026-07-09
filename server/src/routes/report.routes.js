@@ -3,28 +3,33 @@ const express = require("express");
 const router = express.Router();
 
 const verifyToken = require("../middleware/auth.middleware");
+const upload = require("../middleware/upload.middleware");
 
 const {
   createReport,
   getAllReports,
+  getAdminReports,
   getReportById,
   updateReportStatus,
   deleteReport,
 } = require("../controllers/report.controller");
 
-// Create Report
-router.post("/", verifyToken, createReport);
+// Citizen
+router.post("/", verifyToken, upload.single("image"), createReport);
 
-// Get All Reports
+// Citizen Reports
 router.get("/", verifyToken, getAllReports);
 
-// Get Report By ID
+// Admin Reports
+router.get("/admin/all", verifyToken, getAdminReports);
+
+// Single Report
 router.get("/:id", verifyToken, getReportById);
 
-// Update Report Status
+// Update Status
 router.patch("/:id/status", verifyToken, updateReportStatus);
 
-// Delete Report
+// Delete
 router.delete("/:id", verifyToken, deleteReport);
 
 module.exports = router;

@@ -26,64 +26,86 @@ model User {
   passwordHash  String
   phone         String?
   role          UserRole       @default(CITIZEN)
-  reports       Report[]
-  notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+
+  reports        Report[]
+  notifications  Notification[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Report {
-  id            String          @id @default(uuid())
+  id            String       @id @default(uuid())
+
   title         String
   description   String
   issueType     String
-  status        ReportStatus    @default(PENDING)
+
+  status        ReportStatus @default(PENDING)
+
   latitude      Float
   longitude     Float
   address       String?
+
+  // AI Prediction
+  aiClass       String?
+  aiConfidence  Float?
+
   citizenId     String
-  citizen       User            @relation(fields: [citizenId], references: [id], onDelete: Cascade)
-  images        Image[]
-  statusHistory StatusHistory[]
-  assignment    Assignment? // One-to-one relationship with Assignment
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  citizen       User @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+
+  images         Image[]
+  statusHistory  StatusHistory[]
+  assignment     Assignment?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Image {
   id         String  @id @default(uuid())
   imageUrl   String
+
   aiClass    String?
   confidence Float?
+
   reportId   String
-  report     Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
 }
 
 model StatusHistory {
-  id        String       @id @default(uuid())
-  oldStatus ReportStatus
-  newStatus ReportStatus
-  remarks   String?
-  reportId  String
-  report    Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  changedAt DateTime     @default(now())
+  id         String       @id @default(uuid())
+  oldStatus  ReportStatus
+  newStatus  ReportStatus
+  remarks    String?
+
+  reportId   String
+  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  changedAt  DateTime @default(now())
 }
 
 model Assignment {
-  id          String   @id @default(uuid())
-  department  String
-  officerName String?
-  reportId    String   @unique // Ensure a unique constraint on reportId
-  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade) // Define the relationship with Report
-  assignedAt  DateTime @default(now())
+  id           String   @id @default(uuid())
+
+  department   String
+  officerName  String?
+
+  reportId     String   @unique
+  report       Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  assignedAt   DateTime @default(now())
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+
+  title      String
+  message    String
+  isRead     Boolean @default(false)
+
+  userId     String
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
 }

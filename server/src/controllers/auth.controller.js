@@ -69,6 +69,9 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
+    console.log("========== LOGIN REQUEST ==========");
+    console.log("BODY:", req.body);
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -82,7 +85,10 @@ const login = async (req, res) => {
       where: { email },
     });
 
+    console.log("USER FOUND:", user);
+
     if (!user) {
+      console.log("❌ USER NOT FOUND");
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -91,7 +97,10 @@ const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
+    console.log("PASSWORD MATCH:", isMatch);
+
     if (!isMatch) {
+      console.log("❌ WRONG PASSWORD");
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -109,6 +118,8 @@ const login = async (req, res) => {
       }
     );
 
+    console.log("✅ LOGIN SUCCESS");
+
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -121,6 +132,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("LOGIN ERROR:");
     console.error(error);
 
     res.status(500).json({
