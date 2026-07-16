@@ -1,17 +1,9 @@
 """
 Merge all selected datasets into one standardized Nagar Connect dataset.
-
-This script creates the folder structure that will hold the final
-merged dataset used for training the Nagar Connect AI model.
 """
 
 from pathlib import Path
 import shutil
-
-from filter_classes import (
-    load_dataset_classes,
-    create_class_mapping,
-)
 
 # Project paths
 
@@ -28,32 +20,21 @@ OUTPUT_DATASET = (
 
 
 def create_output_folders():
-    """
-    Create the folder structure for the processed dataset.
-    """
 
     for split in ["train", "valid", "test"]:
 
         (OUTPUT_DATASET / split / "images").mkdir(
             parents=True,
-            exist_ok=True,
+            exist_ok=True
         )
 
         (OUTPUT_DATASET / split / "labels").mkdir(
             parents=True,
-            exist_ok=True,
+            exist_ok=True
         )
 
+
 def find_dataset_splits(dataset_path):
-    """
-    Find available train, valid and test folders in a dataset.
-
-    Args:
-        dataset_path (Path): Path to a dataset folder.
-
-    Returns:
-        dict: Available dataset splits.
-    """
 
     splits = {}
 
@@ -65,16 +46,9 @@ def find_dataset_splits(dataset_path):
             splits[split] = split_path
 
     return splits
+
+
 def get_image_label_dirs(split_path):
-    """
-    Return image and label directories for a dataset split.
-
-    Args:
-        split_path (Path): train/valid/test folder
-
-    Returns:
-        tuple(Path, Path): (images_dir, labels_dir)
-    """
 
     images_dir = split_path / "images"
     labels_dir = split_path / "labels"
@@ -87,51 +61,209 @@ def get_image_label_dirs(split_path):
 
     return images_dir, labels_dir
 
+
 def load_label_file(label_path):
-    """
-    Read all annotations from a YOLO label file.
-
-    Args:
-        label_path (Path)
-
-    Returns:
-        list
-    """
 
     if not label_path.exists():
         return []
 
     with open(label_path, "r", encoding="utf-8") as file:
         return file.readlines()
-    
+
+
 def save_label_file(label_path, annotations):
-    """
-    Save annotations to a YOLO label file.
-    """
 
     with open(label_path, "w", encoding="utf-8") as file:
         file.writelines(annotations)
 
-def copy_image(source_image, destination_image):
-    """
-    Copy an image to the processed dataset.
-    """
 
-    shutil.copy2(source_image, destination_image)
+def copy_image(source, destination):
+
+    if not source.exists():
+        print("Missing image skipped:", source)
+        return False
+
+    destination.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    shutil.copy2(
+        str(source),
+        str(destination)
+    )
+
+    return True
+
 
 
 if __name__ == "__main__":
 
-    sample = next(
-    path for path in RAW_DATASETS.rglob("*.txt")
-    if path.parent.name == "labels"
-)
+    create_output_folders()
 
-    print(sample)
 
-    annotations = load_label_file(sample)
+    datasets = {
 
-    print("\nFirst five annotations:\n")
+        "brokenstreetlight":
+            RAW_DATASETS /
+            "brokenstreetlight" /
+            "brokenstreetlightdataset",
 
-    for line in annotations[:5]:
-        print(line.strip())
+
+        "garbage":
+         PROJECT_ROOT /
+         "datasets" /
+         "processed" /
+         "garbage",
+
+
+        "openmanhole":
+            RAW_DATASETS /
+            "openmanhole" /
+            "openmanholedataset", 
+
+
+        "pothole":
+            RAW_DATASETS /
+            "pothole" /
+            "potholedataset",
+
+
+        "roadcrack":
+            RAW_DATASETS /
+            "roadcrack" /
+            "roadcrackdataset",
+
+
+        "waterlogging":
+            PROJECT_ROOT /
+            "datasets" /
+            "processed" /
+            "waterlogging"
+    }
+
+
+
+    total_images = 0
+    total_labels = 0
+
+
+    for dataset_name, dataset_path in datasets.items():
+
+        print("\nProcessing", dataset_name)
+
+
+        splits = find_dataset_splits(dataset_path)
+
+
+        for split, split_path in splits.items():
+
+
+            images_dir, labels_dir = get_image_label_dirs(
+                split_path
+            )
+
+
+            if images_dir is None:
+                continue
+
+
+
+            output_images = (
+                OUTPUT_DATASET /
+                split /
+                "images"
+            )
+
+
+            output_labels = (
+                OUTPUT_DATASET /
+                split /
+                "labels"
+            )
+
+
+
+            for image_file in list(images_dir.iterdir()):
+
+
+                if not image_file.is_file():
+                    continue
+
+
+                if image_file.suffix.lower() not in [
+                    ".jpg",
+                    ".jpeg",
+                    ".png"
+                ]:
+                    continue
+
+
+                destination_image = (
+                    output_images /
+                    f"{dataset_name}_{image_file.name}"
+                )
+
+
+                copied = copy_image(
+                    image_file,
+                    destination_image
+                )
+
+
+                if not copied:
+                    continue
+
+
+
+                label_file = (
+                    labels_dir /
+                    f"{image_file.stem}.txt"
+                )
+
+
+                destination_label = (
+                    output_labels /
+                    f"{dataset_name}_{image_file.stem}.txt"
+                )
+
+
+                annotations = []
+
+
+                if label_file.exists():
+
+                    annotations = load_label_file(
+                        label_file
+                    )
+
+
+                save_label_file(
+                    destination_label,
+                    annotations
+                )
+
+
+                total_images += 1
+                total_labels += 1
+
+
+
+        print(
+            "Finished",
+            dataset_name
+        )
+
+
+
+    print("\nMERGE COMPLETE")
+
+    print(
+        "Images copied:",
+        total_images
+    )
+
+    print(
+        "Labels created:",
+        total_labels
+    )

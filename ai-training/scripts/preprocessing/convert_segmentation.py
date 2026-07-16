@@ -8,6 +8,7 @@ The script converts polygon annotations into bounding boxes.
 """
 
 import os
+import shutil
 
 
 def polygon_to_bbox(points):
@@ -79,7 +80,20 @@ if __name__ == "__main__":
         "ai-training/datasets/processed/waterlogging/labels"
     )
 
+    image_input_folder = (
+        "ai-training/datasets/raw/waterlogging/"
+        "Waterlogging.v2i.yolov8/valid/images"
+    )
+
+    image_output_folder = (
+        "ai-training/datasets/processed/waterlogging/images"
+    )
+
     os.makedirs(output_folder, exist_ok=True)
+    os.makedirs(image_output_folder, exist_ok=True)
+
+
+    # Convert segmentation labels to detection labels
 
     converted_count = 0
 
@@ -87,20 +101,70 @@ if __name__ == "__main__":
 
         if filename.endswith(".txt"):
 
-            input_file = os.path.join(input_folder, filename)
+            input_file = os.path.join(
+                input_folder,
+                filename
+            )
 
-            output_file = os.path.join(output_folder, filename)
+            output_file = os.path.join(
+                output_folder,
+                filename
+            )
 
-        if not os.path.isfile(input_file):
-            continue
+            if not os.path.isfile(input_file):
+                continue
 
-        if os.path.getsize(input_file) == 0:
-            continue
+            if os.path.getsize(input_file) == 0:
+                continue
 
-        convert_label_file(input_file, output_file)
+            convert_label_file(
+                input_file,
+                output_file
+            )
 
-        converted_count += 1
+            converted_count += 1
 
-            
 
-    print(f"Converted {converted_count} label files successfully.")
+    print(
+        f"Converted {converted_count} label files successfully."
+    )
+
+
+    # Copy corresponding images
+
+    copied_images = 0
+
+    for filename in os.listdir(image_input_folder):
+
+        if filename.lower().endswith(
+            (".jpg", ".jpeg", ".png")
+        ):
+
+            source = os.path.join(
+            image_input_folder,
+            filename
+            )
+
+            destination = os.path.join(
+            image_output_folder,
+            filename
+            )
+
+            if not os.path.isfile(source):
+                continue
+
+            try:
+                shutil.copy2(
+                    source,
+                    destination
+                )
+
+                copied_images += 1
+
+            except FileNotFoundError:
+                continue
+
+
+    print(
+        f"Copied {copied_images} images successfully."
+    )
