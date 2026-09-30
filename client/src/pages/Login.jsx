@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mail, Lock, Shield } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../services/api";
 
 export default function Login() {
@@ -12,41 +15,144 @@ export default function Login() {
         password,
       });
 
+      // Save token
       localStorage.setItem("token", res.data.token);
 
-      localStorage.setItem("token", res.data.token);
+      // Save logged in user
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );
 
-window.location.href = "/dashboard";
+      toast.success("Login Successful!");
+
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+
     } catch (err) {
       console.error(err);
-      alert("Login Failed");
+
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Login Failed");
+      }
     }
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="min-h-screen bg-[#0d1117] text-white flex">
+      {/* Left Side */}
+      <div className="hidden lg:flex w-1/2 flex-col justify-center px-20 relative overflow-hidden">
+        <div className="absolute -top-40 -right-32 w-96 h-96 rounded-full bg-blue-900/30"></div>
+        <div className="absolute bottom-20 left-0 w-72 h-72 rounded-full bg-blue-800/20"></div>
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <h2 className="text-5xl font-extrabold leading-tight">
+          Detect.
+          <br />
+          Classify.
+          <br />
+          Resolve.
+        </h2>
 
-      <br />
-      <br />
+        <p className="mt-6 text-blue-400 font-semibold uppercase tracking-wider">
+          Powered by NagarConnect AI
+        </p>
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <p className="mt-6 text-gray-300 text-lg max-w-lg">
+          Helping citizens report civic issues using AI-powered image
+          classification, GPS detection and intelligent routing to municipal
+          departments.
+        </p>
 
-      <br />
-      <br />
+        <div className="mt-14 bg-[#111827] rounded-3xl p-10 border border-gray-800">
+          <img
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"
+            alt="City"
+            className="rounded-2xl"
+          />
+        </div>
+      </div>
 
-      <button onClick={login}>Login</button>
+      {/* Right Side */}
+      <div className="flex-1 flex justify-center items-center px-6">
+        <div className="bg-[#111827] border border-gray-800 rounded-3xl w-full max-w-md p-10">
+
+          <h1 className="text-4xl font-bold mb-2">
+            Welcome back
+          </h1>
+
+          <p className="text-gray-400 mb-8">
+            Sign in to your account to continue
+          </p>
+
+          <label className="text-sm text-gray-300">
+            Email address
+          </label>
+
+          <div className="flex items-center border border-gray-700 rounded-xl px-4 mt-2 mb-5">
+            <Mail size={18} className="text-gray-400" />
+
+            <input
+              className="bg-transparent outline-none w-full p-4"
+              placeholder="rahul@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <label className="text-sm text-gray-300">
+            Password
+          </label>
+
+          <div className="flex items-center border border-gray-700 rounded-xl px-4 mt-2">
+            <Lock size={18} className="text-gray-400" />
+
+            <input
+              type="password"
+              className="bg-transparent outline-none w-full p-4"
+              placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-between items-center mt-5 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked />
+              Remember me
+            </label>
+
+            <button className="text-blue-500 hover:text-blue-400">
+              Forgot password?
+            </button>
+          </div>
+
+          <button
+            onClick={login}
+            className="mt-8 w-full bg-blue-700 hover:bg-blue-600 transition rounded-xl py-4 text-lg font-semibold"
+          >
+            Sign In →
+          </button>
+
+          <div className="flex items-center justify-center gap-2 mt-8 text-gray-400">
+            <Shield size={16} />
+            Secure JWT Authentication
+          </div>
+
+          <p className="text-center mt-8 text-gray-400">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-blue-500 hover:text-blue-400"
+            >
+              Create one free
+            </Link>
+          </p>
+
+        </div>
+      </div>
     </div>
   );
 }

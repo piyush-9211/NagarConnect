@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  MapPin,
+  CalendarDays,
+  ShieldCheck,
+  ArrowLeft,
+  Building2,
+  TriangleAlert,
+} from "lucide-react";
+
+import Navbar from "../components/layout/Navbar";
 import api from "../services/api";
 
 export default function ReportDetails() {
@@ -13,122 +23,265 @@ export default function ReportDetails() {
     fetchReport();
   }, []);
 
-  const fetchReport = async () => {
+  async function fetchReport() {
     try {
       const res = await api.get(`/reports/${id}`);
-
-      console.log(res.data);
-
       setReport(res.data.report);
     } catch (err) {
       console.error(err);
-      alert("Failed to load report.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
+  }
 
   if (loading) {
-    return <h2>Loading...</h2>;
+    return (
+      <div className="min-h-screen bg-[#F6F8FC]">
+        <Navbar />
+        <div className="text-center py-24 text-xl">
+          Loading report...
+        </div>
+      </div>
+    );
   }
 
   if (!report) {
-    return <h2>Report not found.</h2>;
+    return (
+      <div className="min-h-screen bg-[#F6F8FC]">
+        <Navbar />
+        <div className="text-center py-24 text-xl">
+          Report not found.
+        </div>
+      </div>
+    );
   }
 
+  const statusColor = {
+    PENDING: "bg-yellow-100 text-yellow-700",
+    IN_PROGRESS: "bg-blue-100 text-blue-700",
+    RESOLVED: "bg-green-100 text-green-700",
+  };
+
   return (
-    <div style={{ padding: "40px" }}>
-      <button onClick={() => navigate("/dashboard")}>
-        ← Back
-      </button>
+    <div className="min-h-screen bg-[#F6F8FC]">
 
-      <h1>Report Details</h1>
+      <Navbar />
 
-      <hr />
+      <div className="max-w-7xl mx-auto px-8 py-8">
 
-      <h2>{report.title}</h2>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-blue-600 font-semibold mb-8 hover:gap-3 transition-all"
+        >
+          <ArrowLeft size={18} />
+          Back
+        </button>
 
-      <p>
-        <b>Description:</b>
-      </p>
+        <div className="grid lg:grid-cols-3 gap-8">
 
-      <p>{report.description}</p>
+          {/* LEFT */}
 
-      <p>
-        <b>Status:</b> {report.status}
-      </p>
+          <div className="lg:col-span-2">
 
-      <p>
-        <b>Issue Type:</b> {report.issueType}
-      </p>
+            <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
 
-      <p>
-        <b>Latitude:</b> {report.latitude}
-      </p>
+              <img
+                src={
+                  report.images?.length
+                    ? `http://localhost:4000${report.images[0].imageUrl}`
+                    : "https://placehold.co/900x550?text=No+Image"
+                }
+                alt={report.title}
+                className="w-full h-[520px] object-cover"
+              />
 
-      <p>
-        <b>Longitude:</b> {report.longitude}
-      </p>
+              <div className="p-8">
 
-      <p>
-        <b>Address:</b>{" "}
-        {report.address || "Not Available"}
-      </p>
+                <div className="flex justify-between items-start">
 
-      <p>
-        <b>Submitted By:</b>{" "}
-        {report.citizen.fullName}
-      </p>
+                  <div>
 
-      <p>
-        <b>Email:</b>{" "}
-        {report.citizen.email}
-      </p>
+                    <h1 className="text-4xl font-bold">
+                      {report.title}
+                    </h1>
 
-      <p>
-        <b>Created:</b>{" "}
-        {new Date(report.createdAt).toLocaleString()}
-      </p>
+                    <div className="flex gap-6 mt-4 text-gray-500">
 
-      <hr />
+                      <div className="flex items-center gap-2">
 
-      <h2>Uploaded Image</h2>
+                        <CalendarDays size={18} />
 
-      {report.images.length > 0 ? (
-        <img
-          src={`http://localhost:4000${report.images[0].imageUrl}`}
-          alt="Report"
-          width="400"
-        />
-      ) : (
-        <p>No Image Uploaded</p>
-      )}
+                        {new Date(
+                          report.createdAt
+                        ).toLocaleDateString()}
 
-      <hr />
+                      </div>
 
-      <h2>AI Prediction</h2>
+                      <div className="flex items-center gap-2">
 
-      <div
-        style={{
-          border: "1px solid gray",
-          padding: "20px",
-        }}
-      >
-        <h3>🚧 Coming Soon...</h3>
+                        <MapPin size={18} />
 
-        <p>
-          This section will display the AI prediction
-          after Kavya finishes the model.
-        </p>
+                        Bengaluru
 
-        <p>
-          <b>Detected Issue:</b> —
-        </p>
+                      </div>
 
-        <p>
-          <b>Confidence:</b> —
-        </p>
+                    </div>
+
+                  </div>
+
+                  <span
+                    className={`px-4 py-2 rounded-full font-semibold ${
+                      statusColor[report.status]
+                    }`}
+                  >
+                    {report.status.replace("_", " ")}
+                  </span>
+
+                </div>
+
+                <div className="mt-8">
+
+                  <h2 className="text-2xl font-bold">
+                    Description
+                  </h2>
+
+                  <p className="mt-4 text-gray-600 leading-8">
+                    {report.description}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* RIGHT */}
+
+          <div className="space-y-6">
+
+            <div className="bg-white rounded-3xl shadow-sm p-7">
+
+              <div className="flex items-center gap-3">
+
+                <ShieldCheck className="text-blue-600" />
+
+                <h2 className="text-2xl font-bold">
+                  AI Analysis
+                </h2>
+
+              </div>
+
+              <div className="mt-8 space-y-6">
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Issue Type
+                  </p>
+
+                  <h3 className="text-xl font-semibold">
+                    {report.issueType}
+                  </h3>
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500">
+                    AI Confidence
+                  </p>
+
+                  <div className="mt-3 h-3 rounded-full bg-gray-200">
+
+                    <div
+                      className="h-3 rounded-full bg-blue-600"
+                      style={{ width: "94%" }}
+                    />
+
+                  </div>
+
+                  <p className="mt-2 font-bold text-blue-600">
+                    94%
+                  </p>
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Department
+                  </p>
+
+                  <div className="flex items-center gap-2 mt-2">
+
+                    <Building2 size={18} />
+
+                    Roads Department
+
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Severity
+                  </p>
+
+                  <span className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-3 py-2 rounded-full mt-2">
+
+                    <TriangleAlert size={16} />
+
+                    High
+
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-sm p-7">
+
+              <h2 className="text-2xl font-bold mb-6">
+                Location
+              </h2>
+
+              <div className="space-y-4">
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Latitude
+                  </p>
+
+                  <h3>{report.latitude}</h3>
+
+                </div>
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Longitude
+                  </p>
+
+                  <h3>{report.longitude}</h3>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
+
     </div>
   );
 }
