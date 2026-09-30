@@ -1,8 +1,37 @@
 const prisma = require("../config/prisma");
+const axios = require("axios");
+
+// ==============================
+// Reverse Geocode
+// ==============================
+
+const getAddressFromCoordinates = async (latitude, longitude) => {
+  try {
+    const response = await axios.get(
+      "https://nominatim.openstreetmap.org/reverse",
+      {
+        params: {
+          lat: latitude,
+          lon: longitude,
+          format: "jsonv2",
+        },
+        headers: {
+          "User-Agent": "NagarConnect/1.0 (Student Project)",
+        },
+      }
+    );
+
+    return response.data.display_name || null;
+  } catch (error) {
+    console.error("Reverse Geocoding Error:", error.message);
+    return null;
+  }
+};
 
 // ==============================
 // Create Report
 // ==============================
+
 const createReport = async (req, res) => {
   try {
     const {
@@ -11,7 +40,6 @@ const createReport = async (req, res) => {
       issueType,
       latitude,
       longitude,
-      address,
     } = req.body;
 
     if (
@@ -27,14 +55,23 @@ const createReport = async (req, res) => {
       });
     }
 
+    // Automatically get address
+    const address = await getAddressFromCoordinates(
+      latitude,
+      longitude
+    );
+
     const report = await prisma.report.create({
       data: {
         title,
         description,
         issueType,
+
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
+
         address,
+
         citizenId: req.user.id,
 
         images: req.file
@@ -45,6 +82,7 @@ const createReport = async (req, res) => {
             }
           : undefined,
       },
+
       include: {
         citizen: {
           select: {
@@ -62,6 +100,7 @@ const createReport = async (req, res) => {
       message: "Report created successfully",
       report,
     });
+
   } catch (err) {
     console.error(err);
 
@@ -75,15 +114,18 @@ const createReport = async (req, res) => {
 // ==============================
 // Citizen Reports
 // ==============================
+
 const getAllReports = async (req, res) => {
   try {
     const reports = await prisma.report.findMany({
       where: {
         citizenId: req.user.id,
       },
+
       include: {
         images: true,
       },
+
       orderBy: {
         createdAt: "desc",
       },
@@ -94,6 +136,7 @@ const getAllReports = async (req, res) => {
       count: reports.length,
       reports,
     });
+
   } catch (err) {
     console.error(err);
 
@@ -107,6 +150,7 @@ const getAllReports = async (req, res) => {
 // ==============================
 // Admin Reports
 // ==============================
+
 const getAdminReports = async (req, res) => {
   try {
     const reports = await prisma.report.findMany({
@@ -118,8 +162,10 @@ const getAdminReports = async (req, res) => {
             email: true,
           },
         },
+
         images: true,
       },
+
       orderBy: {
         createdAt: "desc",
       },
@@ -129,6 +175,7 @@ const getAdminReports = async (req, res) => {
       success: true,
       reports,
     });
+
   } catch (err) {
     console.error(err);
 
@@ -142,12 +189,14 @@ const getAdminReports = async (req, res) => {
 // ==============================
 // Report Details
 // ==============================
+
 const getReportById = async (req, res) => {
   try {
     const report = await prisma.report.findUnique({
       where: {
         id: req.params.id,
       },
+
       include: {
         citizen: {
           select: {
@@ -156,6 +205,7 @@ const getReportById = async (req, res) => {
             email: true,
           },
         },
+
         images: true,
       },
     });
@@ -171,6 +221,7 @@ const getReportById = async (req, res) => {
       success: true,
       report,
     });
+
   } catch (err) {
     console.error(err);
 
@@ -184,6 +235,7 @@ const getReportById = async (req, res) => {
 // ==============================
 // Update Status
 // ==============================
+
 const updateReportStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -192,6 +244,7 @@ const updateReportStatus = async (req, res) => {
       where: {
         id: req.params.id,
       },
+
       data: {
         status,
       },
@@ -202,6 +255,7 @@ const updateReportStatus = async (req, res) => {
       message: "Status updated successfully",
       report,
     });
+
   } catch (err) {
     console.error(err);
 
@@ -215,6 +269,7 @@ const updateReportStatus = async (req, res) => {
 // ==============================
 // Delete Report
 // ==============================
+
 const deleteReport = async (req, res) => {
   try {
     const report = await prisma.report.findUnique({
@@ -240,6 +295,7 @@ const deleteReport = async (req, res) => {
       success: true,
       message: "Report deleted successfully",
     });
+
   } catch (err) {
     console.error(err);
 

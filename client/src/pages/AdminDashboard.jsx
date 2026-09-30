@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import toast from "react-hot-toast";
+
+import Navbar from "../components/layout/Navbar";
+import AdminStats from "../components/admin/AdminStats";
+import AdminTable from "../components/admin/AdminTable";
+
 import api from "../services/api";
 
 export default function AdminDashboard() {
@@ -16,7 +23,7 @@ export default function AdminDashboard() {
       setReports(res.data.reports);
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch reports");
+      toast.error("Failed to fetch reports");
     }
   };
 
@@ -26,16 +33,14 @@ export default function AdminDashboard() {
         status,
       });
 
+      toast.success("Status Updated");
+
       fetchReports();
     } catch (err) {
       console.error(err);
-      alert("Failed to update status");
+      toast.error("Failed to update status");
     }
   };
-
-  // ============================
-  // Statistics
-  // ============================
 
   const totalReports = reports.length;
 
@@ -51,21 +56,15 @@ export default function AdminDashboard() {
     (r) => r.status === "RESOLVED"
   ).length;
 
-  const rejectedReports = reports.filter(
-    (r) => r.status === "REJECTED"
-  ).length;
-
-  // ============================
-  // Search + Filter
-  // ============================
-
   const filteredReports = reports.filter((report) => {
     const keyword = search.toLowerCase();
 
     const matchesSearch =
       report.title.toLowerCase().includes(keyword) ||
       report.issueType.toLowerCase().includes(keyword) ||
-      report.citizen.fullName.toLowerCase().includes(keyword);
+      report.citizen.fullName
+        .toLowerCase()
+        .includes(keyword);
 
     const matchesStatus =
       statusFilter === "ALL" ||
@@ -75,129 +74,89 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>Admin Dashboard</h1>
+    <div className="min-h-screen bg-[#F7F9FC]">
 
-      <hr />
+      <Navbar />
 
-      <h2>Statistics</h2>
+      <div className="max-w-7xl mx-auto px-8 py-8">
 
-      <p><b>Total Reports:</b> {totalReports}</p>
-      <p><b>Pending:</b> {pendingReports}</p>
-      <p><b>In Progress:</b> {inProgressReports}</p>
-      <p><b>Resolved:</b> {resolvedReports}</p>
-      <p><b>Rejected:</b> {rejectedReports}</p>
+        <div className="mb-10">
 
-      <hr />
+          <h1 className="text-4xl font-bold">
+            Admin Dashboard
+          </h1>
 
-      <h2>Search & Filter</h2>
+          <p className="text-gray-500 mt-2">
+            Manage citizen reports and monitor city issues.
+          </p>
 
-      <input
-        type="text"
-        placeholder="Search title, issue or citizen..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          width: "350px",
-          padding: "10px",
-          marginRight: "20px",
-        }}
-      />
+        </div>
 
-      <select
-        value={statusFilter}
-        onChange={(e) => setStatusFilter(e.target.value)}
-        style={{
-          padding: "10px",
-        }}
-      >
-        <option value="ALL">All</option>
-        <option value="PENDING">Pending</option>
-        <option value="IN_PROGRESS">In Progress</option>
-        <option value="RESOLVED">Resolved</option>
-        <option value="REJECTED">Rejected</option>
-      </select>
+        <AdminStats
+          total={totalReports}
+          pending={pendingReports}
+          progress={inProgressReports}
+          resolved={resolvedReports}
+        />
 
-      <hr />
+        <div className="mt-10 flex flex-col lg:flex-row gap-5 justify-between">
 
-      {filteredReports.length === 0 ? (
-        <p>No reports found.</p>
-      ) : (
-        filteredReports.map((report) => (
-          <div
-            key={report.id}
-            style={{
-              border: "1px solid gray",
-              padding: "20px",
-              marginBottom: "20px",
-            }}
-          >
-            <h2>{report.title}</h2>
+          <div className="relative w-full lg:w-96">
 
-            <p>{report.description}</p>
+            <Search
+              size={18}
+              className="absolute left-4 top-4 text-gray-400"
+            />
 
-            <p><b>Status:</b> {report.status}</p>
+            <input
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              placeholder="Search reports..."
+              className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 outline-none focus:border-blue-500"
+            />
 
-            <p><b>Issue Type:</b> {report.issueType}</p>
-
-            <p>
-              <b>AI Prediction:</b>{" "}
-              {report.aiClass || "Not Predicted"}
-            </p>
-
-            <p>
-              <b>Confidence:</b>{" "}
-              {report.aiConfidence
-                ? `${(report.aiConfidence * 100).toFixed(1)}%`
-                : "N/A"}
-            </p>
-
-            <p><b>User:</b> {report.citizen.fullName}</p>
-
-            <p><b>Email:</b> {report.citizen.email}</p>
-
-            <p>
-              <b>Latitude:</b> {report.latitude}
-            </p>
-
-            <p>
-              <b>Longitude:</b> {report.longitude}
-            </p>
-
-            <p>
-              <b>Address:</b>{" "}
-              {report.address || "Not Available"}
-            </p>
-
-            {report.images.length > 0 && (
-              <img
-                src={`http://localhost:4000${report.images[0].imageUrl}`}
-                alt="Issue"
-                width="250"
-              />
-            )}
-
-            <br />
-            <br />
-
-            <button onClick={() => updateStatus(report.id, "PENDING")}>
-              Pending
-            </button>{" "}
-
-            <button onClick={() => updateStatus(report.id, "IN_PROGRESS")}>
-              In Progress
-            </button>{" "}
-
-            <button onClick={() => updateStatus(report.id, "RESOLVED")}>
-              Resolved
-            </button>{" "}
-
-            <button onClick={() => updateStatus(report.id, "REJECTED")}>
-              Rejected
-            </button>
           </div>
-        ))
-      )}
+
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value)
+            }
+            className="rounded-xl border border-gray-300 bg-white px-5 py-3"
+          >
+            <option value="ALL">
+              All Reports
+            </option>
+
+            <option value="PENDING">
+              Pending
+            </option>
+
+            <option value="IN_PROGRESS">
+              In Progress
+            </option>
+
+            <option value="RESOLVED">
+              Resolved
+            </option>
+
+            <option value="REJECTED">
+              Rejected
+            </option>
+
+          </select>
+
+        </div>
+
+        <AdminTable
+          reports={filteredReports}
+          updateStatus={updateStatus}
+        />
+
+      </div>
+
     </div>
   );
 }

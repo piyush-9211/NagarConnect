@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
 import api from "../services/api";
 
-export default function Dashboard() {
-  const navigate = useNavigate();
+import Navbar from "../components/layout/Navbar";
+import Hero from "../components/dashboard/Hero";
+import Stats from "../components/dashboard/Stats";
+import RecentReports from "../components/dashboard/RecentReports";
+import AIInsights from "../components/dashboard/AIInsights";
 
+export default function Dashboard() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,125 +20,72 @@ export default function Dashboard() {
   const fetchReports = async () => {
     try {
       const res = await api.get("/reports");
-
-      console.log(res.data);
-
       setReports(res.data.reports);
     } catch (err) {
       console.error(err);
-      alert("Failed to load reports");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
-  const pending = reports.filter(
-    (r) => r.status === "PENDING"
-  ).length;
+  const totalReports = reports.length;
 
   const resolved = reports.filter(
     (r) => r.status === "RESOLVED"
   ).length;
 
+  const pending = reports.filter(
+    (r) => r.status === "PENDING"
+  ).length;
+
+  const inProgress = reports.filter(
+    (r) => r.status === "IN_PROGRESS"
+  ).length;
+
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>NagarConnect Dashboard</h1>
+    <motion.div
+      className="min-h-screen bg-[#F7F9FC]"
+      initial={{ opacity: 0, y: 25 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.5,
+        ease: "easeOut",
+      }}
+    >
+      <Navbar />
 
-      <p>Welcome back 👋</p>
+      <div className="max-w-7xl mx-auto px-8 py-8">
 
-      <hr />
+        <Hero />
 
-      <h2>Quick Actions</h2>
+        <Stats
+          total={totalReports}
+          resolved={resolved}
+          pending={pending}
+          progress={inProgress}
+        />
 
-      <button onClick={() => navigate("/report")}>
-        Report New Issue
-      </button>
+        <div className="grid lg:grid-cols-3 gap-8 mt-10">
 
-      <br />
-      <br />
+          <div className="lg:col-span-2">
 
-      <button onClick={fetchReports}>
-        Refresh Reports
-      </button>
+            <RecentReports
+              reports={reports}
+              loading={loading}
+            />
 
-      <br />
-      <br />
-
-      <button onClick={logout}>
-        Logout
-      </button>
-
-      <hr />
-
-      <h2>Statistics</h2>
-
-      <p>Total Reports : {reports.length}</p>
-
-      <p>Pending : {pending}</p>
-
-      <p>Resolved : {resolved}</p>
-
-      <hr />
-
-      <h2>Recent Reports</h2>
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : reports.length === 0 ? (
-        <p>No reports yet.</p>
-      ) : (
-        reports.map((report) => (
-          <div
-            key={report.id}
-            style={{
-              border: "1px solid gray",
-              padding: "15px",
-              marginBottom: "15px",
-            }}
-          >
-            <h3>{report.title}</h3>
-
-            <p>{report.description}</p>
-
-            <p>
-              <b>Status:</b> {report.status}
-            </p>
-
-            <p>
-              <b>Issue:</b> {report.issueType}
-            </p>
-
-            <p>
-              <b>Location:</b>{" "}
-              {report.latitude}, {report.longitude}
-            </p>
-
-            {report.images.length > 0 && (
-              <img
-                src={`http://localhost:4000${report.images[0].imageUrl}`}
-                alt=""
-                width="250"
-              />
-            )}
-
-            <br />
-            <br />
-
-            <button
-              onClick={() =>
-                navigate(`/report/${report.id}`)
-              }
-            >
-              View Details
-            </button>
           </div>
-        ))
-      )}
-    </div>
+
+          <div>
+
+            <AIInsights reports={reports} />
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </motion.div>
   );
 }
