@@ -1,7 +1,10 @@
 import { Plus, MapPinned } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function Hero() {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -40 }}
@@ -64,18 +67,22 @@ export default function Hero() {
             className="mt-8 flex gap-4 flex-wrap"
           >
 
+            {/* REPORT ISSUE */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/report")}
               className="flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-blue-700 shadow-lg"
             >
               <Plus size={20} />
               Report New Issue
             </motion.button>
 
+            {/* VIEW MY AREA */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/map")}
               className="flex items-center gap-2 rounded-xl border border-white/40 px-6 py-3 hover:bg-white/10"
             >
               <MapPinned size={20} />

@@ -12,24 +12,72 @@ const {
   getReportById,
   updateReportStatus,
   deleteReport,
+  reverseGeocode,
 } = require("../controllers/report.controller");
 
-// Citizen
-router.post("/", verifyToken, upload.single("image"), createReport);
+// ==========================================
+// Create Report
+// ==========================================
+router.post(
+  "/",
+  verifyToken,
+  upload.single("image"),
+  createReport
+);
 
+// ==========================================
 // Citizen Reports
-router.get("/", verifyToken, getAllReports);
+// ==========================================
+router.get(
+  "/",
+  verifyToken,
+  getAllReports
+);
 
+// ==========================================
+// Reverse Geocoding
+// IMPORTANT: keep this BEFORE /:id
+// ==========================================
+router.get(
+  "/geocode",
+  verifyToken,
+  reverseGeocode
+);
+
+// ==========================================
 // Admin Reports
-router.get("/admin/all", verifyToken, getAdminReports);
+// ==========================================
+router.get(
+  "/admin/all",
+  verifyToken,
+  getAdminReports
+);
 
+// ==========================================
 // Single Report
-router.get("/:id", verifyToken, getReportById);
+// ==========================================
+router.get(
+  "/:id",
+  verifyToken,
+  getReportById
+);
 
+// ==========================================
 // Update Status
-router.patch("/:id/status", verifyToken, updateReportStatus);
+// ==========================================
+router.patch(
+  "/:id/status",
+  verifyToken,
+  updateReportStatus
+);
 
+// ==========================================
 // Delete
-router.delete("/:id", verifyToken, deleteReport);
+// ==========================================
+router.delete(
+  "/:id",
+  verifyToken,
+  deleteReport
+);
 
 module.exports = router;

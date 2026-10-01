@@ -7,6 +7,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String         @id @default(uuid())
+  fullName      String
+  email         String         @unique
+  passwordHash  String
+  phone         String?
+  role          UserRole       @default(CITIZEN)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  notifications Notification[]
+  reports       Report[]
+}
+
+model Report {
+  id                  String          @id @default(uuid())
+  title               String
+  description         String
+  issueType           String
+  status              ReportStatus    @default(PENDING)
+  latitude            Float
+  longitude           Float
+  address             String?
+  citizenId           String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  aiClass             String?
+  aiConfidence        Float?
+  aiDepartment        String?
+  aiSeverity          String?
+  estimatedRepairCost Float?
+  assignment          Assignment?
+  images              Image[]
+  citizen             User            @relation(fields: [citizenId], references: [id], onDelete: Cascade)
+  statusHistory       StatusHistory[]
+}
+
+model Image {
+  id         String  @id @default(uuid())
+  imageUrl   String
+  aiClass    String?
+  confidence Float?
+  reportId   String
+  report     Report  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model StatusHistory {
+  id        String       @id @default(uuid())
+  oldStatus ReportStatus
+  newStatus ReportStatus
+  remarks   String?
+  reportId  String
+  changedAt DateTime     @default(now())
+  report    Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  department  String
+  officerName String?
+  reportId    String   @unique
+  assignedAt  DateTime @default(now())
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum UserRole {
   CITIZEN
   ADMIN
@@ -17,95 +91,4 @@ enum ReportStatus {
   IN_PROGRESS
   RESOLVED
   REJECTED
-}
-
-model User {
-  id            String         @id @default(uuid())
-  fullName      String
-  email         String         @unique
-  passwordHash  String
-  phone         String?
-  role          UserRole       @default(CITIZEN)
-
-  reports        Report[]
-  notifications  Notification[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model Report {
-  id            String       @id @default(uuid())
-
-  title         String
-  description   String
-  issueType     String
-
-  status        ReportStatus @default(PENDING)
-
-  latitude      Float
-  longitude     Float
-  address       String?
-
-  // AI Prediction
-  aiClass       String?
-  aiConfidence  Float?
-
-  citizenId     String
-  citizen       User @relation(fields: [citizenId], references: [id], onDelete: Cascade)
-
-  images         Image[]
-  statusHistory  StatusHistory[]
-  assignment     Assignment?
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-model Image {
-  id         String  @id @default(uuid())
-  imageUrl   String
-
-  aiClass    String?
-  confidence Float?
-
-  reportId   String
-  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
-}
-
-model StatusHistory {
-  id         String       @id @default(uuid())
-  oldStatus  ReportStatus
-  newStatus  ReportStatus
-  remarks    String?
-
-  reportId   String
-  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
-
-  changedAt  DateTime @default(now())
-}
-
-model Assignment {
-  id           String   @id @default(uuid())
-
-  department   String
-  officerName  String?
-
-  reportId     String   @unique
-  report       Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
-
-  assignedAt   DateTime @default(now())
-}
-
-model Notification {
-  id         String   @id @default(uuid())
-
-  title      String
-  message    String
-  isRead     Boolean @default(false)
-
-  userId     String
-  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt  DateTime @default(now())
 }

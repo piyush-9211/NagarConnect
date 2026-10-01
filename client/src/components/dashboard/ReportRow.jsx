@@ -13,7 +13,13 @@ export default function ReportRow({ report }) {
     PENDING: "bg-red-100 text-red-600",
     IN_PROGRESS: "bg-blue-100 text-blue-600",
     RESOLVED: "bg-green-100 text-green-600",
+    REJECTED: "bg-gray-100 text-gray-600",
   };
+
+  const confidence =
+    report.aiConfidence != null
+      ? report.aiConfidence * 100
+      : null;
 
   return (
     <div className="group flex justify-between items-center rounded-2xl border border-gray-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
@@ -40,12 +46,14 @@ export default function ReportRow({ report }) {
 
             <div className="flex items-center gap-1">
               <MapPin size={15} />
-              Bengaluru
+              {report.address || "Location detected"}
             </div>
 
             <div className="flex items-center gap-1">
               <CalendarDays size={15} />
-              {new Date(report.createdAt).toLocaleDateString()}
+              {new Date(
+                report.createdAt
+              ).toLocaleDateString()}
             </div>
 
           </div>
@@ -54,14 +62,17 @@ export default function ReportRow({ report }) {
 
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
-                badgeColor[report.status]
+                badgeColor[report.status] ||
+                "bg-gray-100 text-gray-600"
               }`}
             >
               {report.status.replace("_", " ")}
             </span>
 
             <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
-              {report.issueType}
+              {report.aiClass ||
+                report.issueType ||
+                "Unknown"}
             </span>
 
           </div>
@@ -81,15 +92,19 @@ export default function ReportRow({ report }) {
         </div>
 
         <p className="mt-1 text-3xl font-bold text-blue-600">
-          94%
+          {confidence != null
+            ? `${confidence.toFixed(1)}%`
+            : "N/A"}
         </p>
 
         <p className="mt-2 text-xs text-gray-400">
-          NC-2847
+          #{report.id.slice(0, 8)}
         </p>
 
         <button
-          onClick={() => navigate(`/report/${report.id}`)}
+          onClick={() =>
+            navigate(`/report/${report.id}`)
+          }
           className="mt-6 flex items-center gap-2 text-blue-600 font-semibold transition-all group-hover:gap-3"
         >
           View Details

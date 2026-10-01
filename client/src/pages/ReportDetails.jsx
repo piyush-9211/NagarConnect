@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   Building2,
   TriangleAlert,
+  IndianRupee,
+  Flag,
 } from "lucide-react";
 
 import Navbar from "../components/layout/Navbar";
@@ -60,6 +62,31 @@ export default function ReportDetails() {
     PENDING: "bg-yellow-100 text-yellow-700",
     IN_PROGRESS: "bg-blue-100 text-blue-700",
     RESOLVED: "bg-green-100 text-green-700",
+    REJECTED: "bg-red-100 text-red-700",
+  };
+
+  const confidence =
+    report.aiConfidence != null
+      ? report.aiConfidence * 100
+      : 0;
+
+  const severity =
+    report.aiSeverity || "Unknown";
+
+  const priority =
+    severity.toLowerCase() === "high"
+      ? "High"
+      : severity.toLowerCase() === "medium"
+      ? "Medium"
+      : severity.toLowerCase() === "low"
+      ? "Low"
+      : "Unknown";
+
+  const priorityStyle = {
+    High: "bg-red-100 text-red-600",
+    Medium: "bg-yellow-100 text-yellow-700",
+    Low: "bg-green-100 text-green-600",
+    Unknown: "bg-gray-100 text-gray-600",
   };
 
   return (
@@ -108,21 +135,15 @@ export default function ReportDetails() {
                     <div className="flex gap-6 mt-4 text-gray-500">
 
                       <div className="flex items-center gap-2">
-
                         <CalendarDays size={18} />
-
                         {new Date(
                           report.createdAt
                         ).toLocaleDateString()}
-
                       </div>
 
                       <div className="flex items-center gap-2">
-
                         <MapPin size={18} />
-
-                        Bengaluru
-
+                        {report.address || "Location detected"}
                       </div>
 
                     </div>
@@ -131,7 +152,8 @@ export default function ReportDetails() {
 
                   <span
                     className={`px-4 py-2 rounded-full font-semibold ${
-                      statusColor[report.status]
+                      statusColor[report.status] ||
+                      "bg-gray-100 text-gray-600"
                     }`}
                   >
                     {report.status.replace("_", " ")}
@@ -161,6 +183,8 @@ export default function ReportDetails() {
 
           <div className="space-y-6">
 
+            {/* AI ANALYSIS */}
+
             <div className="bg-white rounded-3xl shadow-sm p-7">
 
               <div className="flex items-center gap-3">
@@ -175,17 +199,21 @@ export default function ReportDetails() {
 
               <div className="mt-8 space-y-6">
 
-                <div>
+                {/* ISSUE */}
 
+                <div>
                   <p className="text-gray-500">
                     Issue Type
                   </p>
 
                   <h3 className="text-xl font-semibold">
-                    {report.issueType}
+                    {report.aiClass ||
+                      report.issueType ||
+                      "Unknown"}
                   </h3>
-
                 </div>
+
+                {/* CONFIDENCE */}
 
                 <div>
 
@@ -197,16 +225,22 @@ export default function ReportDetails() {
 
                     <div
                       className="h-3 rounded-full bg-blue-600"
-                      style={{ width: "94%" }}
+                      style={{
+                        width: `${confidence}%`,
+                      }}
                     />
 
                   </div>
 
                   <p className="mt-2 font-bold text-blue-600">
-                    94%
+                    {confidence
+                      ? `${confidence.toFixed(1)}%`
+                      : "N/A"}
                   </p>
 
                 </div>
+
+                {/* DEPARTMENT */}
 
                 <div>
 
@@ -218,11 +252,14 @@ export default function ReportDetails() {
 
                     <Building2 size={18} />
 
-                    Roads Department
+                    {report.aiDepartment ||
+                      "Not assigned"}
 
                   </div>
 
                 </div>
+
+                {/* SEVERITY */}
 
                 <div>
 
@@ -234,15 +271,65 @@ export default function ReportDetails() {
 
                     <TriangleAlert size={16} />
 
-                    High
+                    {severity}
 
                   </span>
+
+                </div>
+
+                {/* PRIORITY */}
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Priority
+                  </p>
+
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-full mt-2 font-semibold ${
+                      priorityStyle[priority]
+                    }`}
+                  >
+
+                    <Flag size={16} />
+
+                    {priority}
+
+                  </span>
+
+                </div>
+
+                {/* COST */}
+
+                <div>
+
+                  <p className="text-gray-500">
+                    Estimated Repair Cost
+                  </p>
+
+                  <div className="flex items-center gap-2 mt-2 text-lg font-bold">
+
+                    <IndianRupee size={18} />
+
+                    {report.estimatedRepairCost != null
+                      ? Number(
+                          report.estimatedRepairCost
+                        ).toLocaleString("en-IN")
+                      : "Not available"}
+
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    MVP estimate — not an official municipal rate
+                  </p>
 
                 </div>
 
               </div>
 
             </div>
+
+            {/* LOCATION */}
 
             <div className="bg-white rounded-3xl shadow-sm p-7">
 
@@ -258,7 +345,9 @@ export default function ReportDetails() {
                     Latitude
                   </p>
 
-                  <h3>{report.latitude}</h3>
+                  <h3>
+                    {report.latitude}
+                  </h3>
 
                 </div>
 
@@ -268,9 +357,25 @@ export default function ReportDetails() {
                     Longitude
                   </p>
 
-                  <h3>{report.longitude}</h3>
+                  <h3>
+                    {report.longitude}
+                  </h3>
 
                 </div>
+
+                {report.address && (
+                  <div>
+
+                    <p className="text-gray-500">
+                      Address
+                    </p>
+
+                    <h3 className="mt-1">
+                      {report.address}
+                    </h3>
+
+                  </div>
+                )}
 
               </div>
 

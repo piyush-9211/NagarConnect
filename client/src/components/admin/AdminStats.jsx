@@ -67,8 +67,8 @@ export default function AdminStats({
             },
           }}
           whileHover={{
-            y: -8,
-            scale: 1.02,
+            y: -5,
+            scale: 1.01,
           }}
           transition={{
             type: "spring",
@@ -81,9 +81,7 @@ export default function AdminStats({
           />
 
           <div className="flex justify-between items-center relative">
-
             <div>
-
               <p className="text-gray-500 font-medium">
                 {card.title}
               </p>
@@ -91,7 +89,6 @@ export default function AdminStats({
               <h2 className="mt-3 text-5xl font-extrabold text-gray-900">
                 {card.value}
               </h2>
-
             </div>
 
             <div
@@ -99,7 +96,6 @@ export default function AdminStats({
             >
               {card.icon}
             </div>
-
           </div>
         </motion.div>
       ))}
